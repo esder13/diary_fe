@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>가상 일기 앱</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .calendar, .diary { padding: 20px; }
+    .calendar { display: flex; flex-wrap: wrap; gap: 10px; }
+    .day {
+      width: calc(14.28% - 10px);
+      height: 100px;
+      border: 1px solid #ccc;
+      position: relative;
+      cursor: pointer;
+    }
+    .day img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .ad-banner {
+      background: #eee;
+      text-align: center;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .diary { display: none; }
+    .diary input, .diary textarea, .diary select {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="calendar-view">
+    <h2>일기 달력</h2>
+    <div class="calendar" id="calendar">
+      <!-- 날짜 칸 생성 -->
+    </div>
+    <div class="ad-banner">[ 광고 자리 ]</div>
+  </div>
+
+  <div class="diary" id="diaryView">
+    <h2 id="selectedDate">일기 작성</h2>
+    <textarea id="diaryText" rows="5" placeholder="오늘의 일기..."></textarea>
+    <input type="file" id="foodPhoto" accept="image/*" />
+    <select id="mood">
+      <option value="">기분 선택</option>
+      <option value="happy">행복</option>
+      <option value="sad">슬픔</option>
+      <option value="angry">화남</option>
+    </select>
+    <button onclick="saveDiary()">저장</button>
+  </div>
+
+  <script>
+    const calendar = document.getElementById("calendar");
+    const diaryView = document.getElementById("diaryView");
+    const calendarView = document.querySelector(".calendar-view");
+    const diaryText = document.getElementById("diaryText");
+    const foodPhoto = document.getElementById("foodPhoto");
+    const mood = document.getElementById("mood");
+    const selectedDateEl = document.getElementById("selectedDate");
+
+    let currentDay = null;
+    const diaryData = {};
+
+    // 달력 생성 (간단히 1~30일)
+    for (let i = 1; i <= 30; i++) {
+      const dayDiv = document.createElement("div");
+      dayDiv.className = "day";
+      dayDiv.dataset.date = `5월 ${i}일`;
+
+      dayDiv.onclick = () => {
+        currentDay = dayDiv.dataset.date;
+        selectedDateEl.innerText = `${currentDay} - 일기 작성`;
+        diaryText.value = diaryData[currentDay]?.text || "";
+        mood.value = diaryData[currentDay]?.mood || "";
+        foodPhoto.value = "";
+        diaryView.style.display = "block";
+        calendarView.style.display = "none";
+      };
+
+      calendar.appendChild(dayDiv);
+    }
+
+    function saveDiary() {
+      const reader = new FileReader();
+      const file = foodPhoto.files[0];
+
+      reader.onload = function(e) {
+        diaryData[currentDay] = {
+          text: diaryText.value,
+          mood: mood.value,
+          photo: e.target.result
+        };
+
+        const days = document.querySelectorAll(".day");
+        days.forEach(day => {
+          if (day.dataset.date === currentDay) {
+            day.innerHTML = `<img src="${e.target.result}" alt="음식 사진">`;
+          }
+        });
+
+        diaryView.style.display = "none";
+        calendarView.style.display = "block";
+      };
+
+      if (file) {
+        reader.readAsDataURL(file);
+      } else {
+        // 사진 없이 저장
+        diaryData[currentDay] = {
+          text: diaryText.value,
+          mood: mood.value,
+          photo: null
+        };
+        diaryView.style.display = "none";
+        calendarView.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
